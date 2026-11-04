@@ -1,0 +1,57 @@
+appName: "notes"
+
+appBuild: "finish"
+
+image:
+    repository: docker.io/library/my-app
+    tag: "latest"
+    pullPolicy: Never
+service:
+  type: ClusterIP
+  port: 8000
+resources:
+  requests:
+    memory: "64Mi"
+    cpu: "250m"
+  limits:
+    memory: "128Mi"
+    cpu: "500m"
+
+livenessProbe:
+  httpGet:
+    path: /livez
+    port: 8000
+  initialDelaySeconds: 15
+
+readinessProbe:
+  httpGet:
+    path: /readyz
+    port: 8000
+  initialDelaySeconds: 5
+
+startupProbe:
+  httpGet:
+    path: /livez
+    port: 8000
+  failureThreshold: 30
+  periodSeconds: 10
+
+global:
+  security:
+    allowInsecureImages: true 
+
+postgresql:
+  enabled: true
+  image:
+    registry: docker.io
+    repository: bitnamilegacy/postgresql
+  auth: 
+    database: "notes"
+    username: "notes"
+    existingSecret: "{{ .Release.Name }}-db-secret"
+    secretKeys:
+      adminPasswordKey: postgres-password
+      userPasswordKey: password
+  primary:
+    persistence:
+      size: 5Gi
